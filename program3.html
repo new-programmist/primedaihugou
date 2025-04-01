@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>プログラム3 (HTML版)</title>
+  <style>
+    body { font-family: monospace; margin: 20px; }
+    input, button { font-size: 16px; }
+    #output { margin-top: 20px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>プログラム6（HTML版）</h1>
+  <form id="programForm">
+    <label for="n">試行回数 (n): </label>
+    <input type="number" id="n" value="1" min="1"><br><br>
+    <label for="text">文字列 (text): </label>
+    <input type="text" id="text" value="A23456789TJQK"><br><br>
+    <button type="button" onclick="run()">実行</button>
+  </form>
+  <div id="output"></div>
+
+  <script>
+    // scaledrand: Cコードと同様、xが0以外の場合は必ず x を返す
+    function scaledrand(x) {
+      if (x === 0) return 0;
+      let a = Math.floor(Math.random() * (x + 1));
+      let b = Math.floor(Math.random() * x);
+      return x; // 元コードの return x; により常に x が返る
+      // return a > b ? a : b;  <- 本来はこちらだが、元の機能をそのまま再現
+    }
+
+    // generate: 文字列に基づき各文字の出現回数をカウントし、該当する数値の配列を生成
+    function generate(text) {
+      let counts = new Array(14).fill(0);
+      for (let i = 0; i < text.length; i++) {
+        let c = text.charAt(i);
+        let value;
+        switch(c) {
+          case 'A': value = 1; break;
+          case '2': value = 2; break;
+          case '3': value = 3; break;
+          case '4': value = 4; break;
+          case '5': value = 5; break;
+          case '6': value = 6; break;
+          case '7': value = 7; break;
+          case '8': value = 8; break;
+          case '9': value = 9; break;
+          case 'T': value = 10; break;
+          case 'J': value = 11; break;
+          case 'Q': value = 12; break;
+          case 'K': value = 13; break;
+          case 'O': value = Math.floor(Math.random() * 14); break;
+          default: value = -1; // 無効な文字はスキップ
+        }
+        if (value >= 0 && value <= 13) {
+          counts[value]++;
+        }
+      }
+      let elements = [];
+      for (let i = 0; i < 14; i++) {
+        if (counts[i] === 0) continue;
+        let s = scaledrand(counts[i]); // 実際は counts[i] が返される
+        for (let j = 0; j < s; j++) {
+          elements.push(i);
+        }
+      }
+      // Fisher–Yates シャッフル
+      for (let i = 0; i < elements.length - 1; i++) {
+        let j = i + Math.floor(Math.random() * (elements.length - i));
+        let temp = elements[j];
+        elements[j] = elements[i];
+        elements[i] = temp;
+      }
+      return elements;
+    }
+
+    // concatenate_numbers: 配列の各数字を連結した文字列に変換
+    function concatenate_numbers(array) {
+      let result = "";
+      for (let i = 0; i < array.length; i++) {
+        result += array[i].toString();
+      }
+      return result;
+    }
+
+    // mulmod: (a*b) mod mod を計算（BigInt 使用）
+    function mulmod(a, b, mod) {
+      let res = 0n;
+      a = a % mod;
+      while (b > 0n) {
+        if (b % 2n === 1n) {
+          res = (res + a) % mod;
+        }
+        a = (a * 2n) % mod;
+        b = b / 2n;
+      }
+      return res % mod;
+    }
+
+    // powmod: (base^exp) mod mod を効率的に計算（BigInt 使用）
+    function powmod(base, exp, mod) {
+      let res = 1n;
+      base = base % mod;
+      while (exp > 0n) {
+        if (exp % 2n === 1n) {
+          res = mulmod(res, base, mod);
+        }
+        base = mulmod(base, base, mod);
+        exp = exp / 2n;
+      }
+      return res;
+    }
+
+    // is_prime: Miller-Rabin 素数判定（40回の反復）
+    function is_prime(n, k) {
+      if (n <= 1n) return false;
+      if (n <= 3n) return true;
+      if (n % 2n === 0n) return false;
+      // n-1 = d * 2^s の形に分解
+      let d = n - 1n;
+      let s = 0;
+      while (d % 2n === 0n) {
+        d = d / 2n;
+        s++;
+      }
+      witnessLoop:
+      for (let i = 0; i < k; i++) {
+        // [2, n-2] の範囲からランダムな a を選ぶ
+        // n が大きくならないことを前提に Number に変換
+        let a = BigInt(2 + Math.floor(Math.random() * Number(n - 3n)));
+        let x = powmod(a, d, n);
+        if (x === 1n || x === n - 1n) continue;
+        for (let j = 0; j < s - 1; j++) {
+          x = mulmod(x, x, n);
+          if (x === n - 1n) continue witnessLoop;
+        }
+        return false; // 合成数
+      }
+      return true; // おそらく素数
+    }
+
+    // print_comma_separated: 配列をカンマ区切りの文字列に変換
+    function print_comma_separated(array) {
+      return array.join(",");
+    }
+
+    // run: メイン処理（フォームから n と text を取得し、n 回の試行を実行）
+    function run() {
+      let n = parseInt(document.getElementById("n").value);
+      let text = document.getElementById("text").value || "A23456789TJQK";
+      let output = "";
+      let arr = [];
+      for (let i = 0; i < n; i++) {
+        let elements = generate(text);
+        let concat = concatenate_numbers(elements);
+        // 連結した数字列を BigInt として扱う
+        let num = BigInt(concat);
+        if (is_prime(num, 40)) {
+          let should_add = (arr.length === 0 || num > arr[arr.length - 1]);
+          // 元の C コードでは余計な表示処理があるが、機能はそのまま
+          should_add = true;
+          if (should_add) {
+            output += print_comma_separated(elements) + "   ";
+            arr.push(num);
+          }
+        }
+      }
+      document.getElementById("output").textContent = output;
+    }
+  </script>
+</body>
+</html>
+
