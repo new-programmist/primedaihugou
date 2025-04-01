@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prime Number Generator</title>
+    <style>
+        .container { margin: 20px; }
+        input, button { margin: 5px; padding: 5px; }
+        pre { background: #f0f0f0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prime Number Generator</h1>
+        <div>
+            <label>Iterations (n): </label>
+            <input type="number" id="nValue" value="10" min="1">
+        </div>
+        <div>
+            <label>Cards: </label>
+            <input type="text" id="cards" value="A23456789TJQKO" maxlength="20">
+        </div>
+        <button onclick="runProgram()">Generate Primes</button>
+        <hr>
+        <div id="output"></div>
+        <div id="sortedPrimes"></div>
+    </div>
+
+    <script>
+        function scaledrand(x) {
+            if (x === 0) return 0;
+            const a = Math.floor(Math.random() * (x + 1));
+            const b = Math.floor(Math.random() * x);
+            return a > b ? a : b;
+        }
+
+        function generate(text) {
+            const counts = new Array(14).fill(0);
+            
+            for(const c of text) {
+                let value;
+                switch(c) {
+                    case 'A': value = 1; break;
+                    case '2': value = 2; break;
+                    case '3': value = 3; break;
+                    case '4': value = 4; break;
+                    case '5': value = 5; break;
+                    case '6': value = 6; break;
+                    case '7': value = 7; break;
+                    case '8': value = 8; break;
+                    case '9': value = 9; break;
+                    case 'T': value = 10; break;
+                    case 'J': value = 11; break;
+                    case 'Q': value = 12; break;
+                    case 'K': value = 13; break;
+                    case 'O': value = Math.floor(Math.random() * 14); break;
+                    default: value = -1;
+                }
+                if (value >= 0 && value <= 13) counts[value]++;
+            }
+
+            let elements = [];
+            for(let i = 0; i < 14; i++) {
+                const count = counts[i];
+                if (count === 0) continue;
+                const s = scaledrand(count);
+                elements.push(...new Array(s).fill(i));
+            }
+
+            // Fisher-Yates shuffle
+            for(let i = elements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [elements[i], elements[j]] = [elements[j], elements[i]];
+            }
+
+            return elements;
+        }
+
+        function concatenateNumbers(elements) {
+            return BigInt(elements.join(''));
+        }
+
+        function mulmod(a, b, mod) {
+            return Number((a * b) % mod);
+        }
+
+        function powmod(base, exp, mod) {
+            let result = 1n;
+            base = base % mod;
+            while (exp > 0n) {
+                if (exp % 2n === 1n) {
+                    result = (result * base) % mod;
+                }
+                base = (base * base) % mod;
+                exp = exp / 2n;
+            }
+            return result;
+        }
+
+        function isPrime(n, k) {
+            if (n <= 1n) return false;
+            if (n <= 3n) return true;
+            if (n % 2n === 0n) return false;
+
+            let d = n - 1n;
+            let s = 0;
+            while (d % 2n === 0n) {
+                d /= 2n;
+                s++;
+            }
+
+            for(let i = 0; i < k; i++) {
+                const a = 2n + BigInt(Math.floor(Math.random() * Number(n - 2n)));
+                let x = powmod(a, d, n);
+
+                if (x === 1n || x === n - 1n) continue;
+
+                let j;
+                for(j = 0; j < s - 1; j++) {
+                    x = powmod(x, 2n, n);
+                    if (x === n - 1n) break;
+                }
+
+                if (j === s - 1) return false;
+            }
+            return true;
+        }
+
+        function runProgram() {
+            const n = parseInt(document.getElementById('nValue').value);
+            const text = document.getElementById('cards').value.toUpperCase();
+            const output = document.getElementById('output');
+            const sortedPrimes = document.getElementById('sortedPrimes');
+            
+            output.innerHTML = '';
+            sortedPrimes.innerHTML = '';
+
+            const primes = [];
+
+            for(let i = 0; i < n; i++) {
+                const elements = generate(text);
+                if (elements.length === 0) continue;
+                
+                const num = concatenateNumbers(elements);
+                if (isPrime(num, 40)) {
+                    const entry = {
+                        elements: [...elements],
+                        num: num
+                    };
+                    primes.push(entry);
+                    
+                    output.innerHTML += `Found prime: ${elements.join(',')} → ${num}<br>`;
+                }
+            }
+
+            if (primes.length > 0) {
+                primes.sort((a, b) => a.num < b.num ? -1 : 1);
+                sortedPrimes.innerHTML = "<h3>Sorted Primes:</h3>";
+                primes.forEach(p => {
+                    sortedPrimes.innerHTML += `${p.elements.join(',')} → ${p.num}<br>`;
+                });
+            } else {
+                sortedPrimes.innerHTML = "<h3>No primes found</h3>";
+            }
+        }
+    </script>
+</body>
+</html>
