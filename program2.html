@@ -1,172 +1,72 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>素因数分解デモ</title>
-  <style>
-    body { font-family: sans-serif; margin: 2em; }
-    #output { margin-top: 1em; white-space: pre-wrap; }
-    button { padding: 0.5em 1em; font-size: 1em; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>素数判定フォーム</title>
+    <script>
+        function shuffle(str) {
+            return str.split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        function charToNum(char) {
+            const mapping = { 'a': 1, 'A': 1, 't': 10, 'T': 10, 'j': 11, 'J': 11, 'q': 12, 'Q': 12, 'k': 13, 'K': 13 };
+            return mapping[char] || parseInt(char) || 0;
+        }
+
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2 || n === 3) return true;
+            if (n % 2 === 0) return false;
+            let d = n - 1, s = 0;
+            while (d % 2 === 0) { d /= 2; s++; }
+            for (let i = 0; i < 40; i++) {
+                let a = 2 + Math.floor(Math.random() * (n - 3));
+                let x = BigInt(a) ** BigInt(d) % BigInt(n);
+                if (x === 1n || x === BigInt(n - 1)) continue;
+                let composite = true;
+                for (let j = 0; j < s - 1; j++) {
+                    x = (x * x) % BigInt(n);
+                    if (x === BigInt(n - 1)) {
+                        composite = false;
+                        break;
+                    }
+                }
+                if (composite) return false;
+            }
+            return true;
+        }
+
+        function generate() {
+            let times = parseInt(document.getElementById("times").value);
+            let text = document.getElementById("text").value;
+            let split = parseInt(document.getElementById("split").value) || Math.floor(Math.random() * (text.length - 1) + 1);
+            let results = [];
+
+            for (let t = 0; t < times; t++) {
+                let shuffled = shuffle(text);
+                let part1 = shuffled.slice(0, split);
+                let part2 = shuffled.slice(split);
+                let num1 = parseInt(part1.split('').map(charToNum).join('')) || 0;
+                let num2 = parseInt(part2.split('').map(charToNum).join('')) || 0;
+                if (isPrime(num1) && isPrime(num2)) {
+                    results.push(`[${part1}, ${part2}]`);
+                }
+            }
+            document.getElementById("output").innerText = results.length ? results.join(', ') : "結果なし";
+        }
+    </script>
 </head>
 <body>
-  <h1>素因数分解デモ</h1>
-  <p>「Generate Factorization」ボタンを押すと、19 桁以上の数を生成し、その素因数分解を行います。（すべての素因数が 10000 未満の場合のみ結果が表示されます）</p>
-  <button id="generateBtn">Generate Factorization</button>
-  <div id="output"></div>
-
-  <script>
-    // 定数定義
-    const MIN_DIGITS = 19;
-    const MAX_PRIME_FACTOR = 10000n;
-    // 数字の断片配列（C プログラムの digits 配列と同じ）
-    const digits = ["13", "12", "11", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-    // BigInt の冪乗を法付きで計算する（modPow）
-    function modPow(base, exponent, modulus) {
-      let result = 1n;
-      base = base % modulus;
-      while (exponent > 0) {
-        if (exponent % 2n === 1n) result = (result * base) % modulus;
-        exponent = exponent / 2n;
-        base = (base * base) % modulus;
-      }
-      return result;
-    }
-
-    // Miller-Rabin 素数判定（固定のテストベースを利用）
-    function isPrime(n) {
-      if (n < 2n) return false;
-      if (n === 2n || n === 3n) return true;
-      if (n % 2n === 0n) return false;
-
-      // n-1 = d * 2^s
-      let s = 0n;
-      let d = n - 1n;
-      while (d % 2n === 0n) {
-        d /= 2n;
-        s += 1n;
-      }
-      // 固定のテストベース（nが小さい場合は十分）
-      const testBases = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n];
-      for (let a of testBases) {
-        if (a > n - 2n) break;
-        let x = modPow(a, d, n);
-        if (x === 1n || x === n - 1n) continue;
-        let cont = false;
-        for (let r = 1n; r < s; r++) {
-          x = modPow(x, 2n, n);
-          if (x === n - 1n) {
-            cont = true;
-            break;
-          }
-        }
-        if (!cont) return false;
-      }
-      return true;
-    }
-
-    // ランダムな大きな数値（BigInt）を生成
-    function generateNumber() {
-      let numStr = "";
-      for (let i = 0; i < digits.length; i++) {
-        // 0～2 回の繰り返し
-        let repeats = Math.floor(Math.random() * 3);
-        for (let j = 0; j < repeats; j++) {
-          numStr += digits[i];
-        }
-      }
-      // 桁数が足りなければ再生成
-      if (numStr.length < MIN_DIGITS) {
-        return generateNumber();
-      }
-      return BigInt(numStr);
-    }
-
-    // 素因数分解
-    function factorize(n) {
-      let factors = [];
-      let remainder = n;
-
-      // 小さい素因数で割る
-      const smallFactors = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n];
-      for (let p of smallFactors) {
-        if (remainder < p * p) break;
-        let exponent = 0;
-        while (remainder % p === 0n) {
-          exponent++;
-          remainder /= p;
-        }
-        if (exponent > 0) {
-          factors.push({prime: p, exponent: exponent});
-        }
-      }
-
-      // 残りが 1 でなければ処理
-      while (remainder > 1n) {
-        // もし remainder が素数なら
-        if (isPrime(remainder)) {
-          factors.push({prime: remainder, exponent: 1});
-          break;
-        }
-
-        // 単純な試行割り（2～MAX_PRIME_FACTOR）
-        let found = false;
-        for (let i = 2n; i <= MAX_PRIME_FACTOR; i++) {
-          if (remainder % i === 0n) {
-            let exponent = 0;
-            while (remainder % i === 0n) {
-              exponent++;
-              remainder /= i;
-            }
-            factors.push({prime: i, exponent: exponent});
-            found = true;
-            break;
-          }
-        }
-        // MAX_PRIME_FACTOR まで見つからなかったら失敗
-        if (!found) {
-          return null;
-        }
-      }
-      return factors;
-    }
-
-    // 結果を画面に表示
-    function printFactorization(n, factors) {
-      let output = `${n.toString()} = `;
-      output += factors.map(f => {
-        return f.exponent > 1 ? `${f.prime.toString()}^${f.exponent}` : f.prime.toString();
-      }).join(" * ");
-      return output;
-    }
-
-    // すべての素因数が MAX_PRIME_FACTOR 未満かチェック
-    function validFactors(factors) {
-      for (let f of factors) {
-        if (f.prime >= MAX_PRIME_FACTOR) return false;
-      }
-      return true;
-    }
-
-    // ボタンが押されたときの処理
-    document.getElementById("generateBtn").addEventListener("click", () => {
-      const outputDiv = document.getElementById("output");
-      outputDiv.textContent = "計算中...";
-      setTimeout(() => {
-        // 有効な数値が見つかるまでループ
-        let result = "";
-        for (;;) {
-          let num = generateNumber();
-          let factors = factorize(num);
-          if (factors !== null && validFactors(factors)) {
-            result = printFactorization(num, factors);
-            break;
-          }
-        }
-        outputDiv.textContent = result;
-      }, 50);
-    });
-  </script>
+    <h2>素数判定フォーム</h2>
+    <label for="times">繰り返し回数: </label>
+    <input type="number" id="times" min="1" value="10"><br>
+    <label for="text">文字列: </label>
+    <input type="text" id="text"><br>
+    <label for="split">分割位置(任意): </label>
+    <input type="number" id="split" min="1"><br>
+    <button onclick="generate()">実行</button>
+    <h3>結果:</h3>
+    <p id="output"></p>
 </body>
 </html>
