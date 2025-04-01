@@ -40,10 +40,10 @@
         function generate() {
             let times = parseInt(document.getElementById("times").value);
             let text = document.getElementById("text").value;
-            let split = parseInt(document.getElementById("split").value) || Math.floor(Math.random() * (text.length - 1) + 1);
             let results = [];
 
             for (let t = 0; t < times; t++) {
+                let split = parseInt(document.getElementById("split").value) || Math.floor(Math.random() * (text.length - 1) + 1);
                 let shuffled = shuffle(text);
                 let part1 = shuffled.slice(0, split);
                 let part2 = shuffled.slice(split);
