@@ -1,3 +1,5 @@
+https://new-programmist.github.io/primedaihugou/
+
 https://new-programmist.github.io/primedaihugou/program.html
 
 https://new-programmist.github.io/primedaihugou/program2.html
