@@ -168,18 +168,18 @@
                     };
                     primes.push(entry);
                     
-                    output.innerHTML += `Found prime: ${elements.join(',')} → ${num}<br>`;
+                    sortedPrimes.innerHTML += `Found prime: ${elements.join(',')} → ${num}<br>`;
                 }
             }
 
             if (primes.length > 0) {
                 primes.sort((a, b) => a.num < b.num ? -1 : 1);
-                sortedPrimes.innerHTML = "<h3>Sorted Primes:</h3>";
+                output.innerHTML = "<h3>Sorted Primes:</h3>";
                 primes.forEach(p => {
-                    sortedPrimes.innerHTML += `${p.elements.join(',')} → ${p.num}<br>`;
+                    output.innerHTML = `${p.elements.join(',')} → ${p.num}<br>` + output.innerHTML;
                 });
             } else {
-                sortedPrimes.innerHTML = "<h3>No primes found</h3>";
+                output.innerHTML = "<h3>No primes found</h3>";
             }
         }
     </script>
