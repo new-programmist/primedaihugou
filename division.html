@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>素因数分解</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input[type="number"] {
+            padding: 8px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 4px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>素因数分解</h2>
+        <input type="number" id="numberInput" placeholder="2以上の整数を入力してください" min="1">
+        <button onclick="factorize()">分解</button>
+        <div id="result"></div>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        function isPrime(n) {
+            if (n <= 1) return false;
+            if (n <= 3) return true;
+            if (n % 2 === 0 || n % 3 === 0) return false;
+            let i = 5;
+            let w = 2;
+            while (i * i <= n) {
+                if (n % i === 0) return false;
+                i += w;
+                w = 6 - w;
+            }
+            return true;
+        }
+
+        function primeFactors(n) {
+            const factors = {};
+            // 处理2的因数
+            while (n % 2 === 0) {
+                factors[2] = (factors[2] || 0) + 1;
+                n = n / 2;
+            }
+            // 处理奇数因数
+            let i = 3;
+            while (i * i <= n) {
+                while (n % i === 0) {
+                    factors[i] = (factors[i] || 0) + 1;
+                    n = n / i;
+                }
+                i += 2;
+            }
+            // 如果剩余数是质数
+            if (n > 2) factors[n] = 1;
+            return factors;
+        }
+
+        function factorize() {
+            const input = document.getElementById("numberInput");
+            const resultDiv = document.getElementById("result");
+            const errorDiv = document.getElementById("error");
+            const num = parseInt(input.value);
+
+            errorDiv.textContent = "";
+            resultDiv.textContent = "";
+
+            if (isNaN(num) || num < 1) {
+                errorDiv.textContent = "2以上の整数を入力してください";
+                return;
+            }
+
+            if (num === 1) {
+                resultDiv.textContent = "2以上の整数を入力してください";
+                return;
+            }
+
+            const factors = primeFactors(num);
+            const result = Object.keys(factors)
+                .sort((a, b) => a - b)
+                .map(k => {
+                    return factors[k] > 1 ? `${k}<sup>${factors[k]}</sup>` : k;
+                })
+                .join(" × ");
+
+            resultDiv.innerHTML = `${num} = ${result}`;
+        }
+    </script>
+</body>
+</html>
