@@ -89,22 +89,6 @@
             return BigInt(elements.join(''));
         }
 
-        function mulmod(a, b, mod) {
-            return Number((a * b) % mod);
-        }
-
-        function powmod(base, exp, mod) {
-            let result = 1n;
-            base = base % mod;
-            while (exp > 0n) {
-                if (exp % 2n === 1n) {
-                    result = (result * base) % mod;
-                }
-                base = (base * base) % mod;
-                exp = exp / 2n;
-            }
-            return result;
-        }
         function sort_unique(arr) {
   			if (arr.length === 0) return arr;
   			arr = arr.sort((a, b) => a.num < b.num ? -1 : 1);
@@ -118,34 +102,7 @@
   			return ret;
 		}			
 
-        function isPrime(n, k) {
-            if (n <= 1n) return false;
-            if (n <= 3n) return true;
-            if (n % 2n === 0n) return false;
-
-            let d = n - 1n;
-            let s = 0;
-            while (d % 2n === 0) {
-                d /= 2n;
-                s++;
-            }
-
-            for (let i = 0; i < k; i++) {
-                const a = 2n + BigInt(Math.floor(Math.random() * Number(n - 2n)));
-                let x = powmod(a, d, n);
-
-                if (x === 1n || x === n - 1n) continue;
-
-                let j;
-                for (j = 0; j < s - 1; j++) {
-                    x = powmod(x, 2n, n);
-                    if (x === n - 1n) break;
-                }
-
-                if (j === s - 1) return false;
-            }
-            return true;
-        }
+        const isPrime=(n,k=100)=>n<2n||n%2n===0n?false:n<4n?true:!Array(k).fill().some(()=>{let d=n-1n,r=0n;while(d%2n===0n)d/=2n,r++;let a=2n+BigInt(Math.floor(Math.random()*Number(n-4n))),x=(f=(b,e,m)=>{let r=1n;b%=m;while(e>0n){if(e%2n)r=r*b%m;e/=2n;b=b*b%m;}return r;})(a,d,n);if(x===1n||x===n-1n)return false;while(--r){x=f(x,2n,n);if(x===n-1n)return false;}return true});
 
         function runProgram() {
             const n = parseInt(document.getElementById('nValue').value);
@@ -174,7 +131,7 @@
 
 
                 const num = concatenateNumbers(elements);
-                if (isPrime(num, 40)) {
+                if (isPrime(num)) {
                     const entry = {
                         elements: [...elements],
                         num: num
