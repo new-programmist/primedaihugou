@@ -18,7 +18,7 @@
         </div>
         <div class="input-group">
             <label>Cards: </label>
-            <input type="text" id="cards" value="A23456789TJQKO" maxlength="20">
+            <input type="text" id="cards" value="1A23457JQKO" maxlength="20">
         </div>
         <div class="input-group">
             <label>Min Elements: </label>
@@ -48,16 +48,13 @@
             for(const c of text) {
                 let value;
                 switch(c) {
+                    case '1': value = 1; break;
                     case 'A': value = 1; break;
                     case '2': value = 2; break;
                     case '3': value = 3; break;
                     case '4': value = 4; break;
                     case '5': value = 5; break;
-                    case '6': value = 6; break;
                     case '7': value = 7; break;
-                    case '8': value = 8; break;
-                    case '9': value = 9; break;
-                    case 'T': value = 10; break;
                     case 'J': value = 11; break;
                     case 'Q': value = 12; break;
                     case 'K': value = 13; break;
@@ -104,6 +101,18 @@
             }
             return result;
         }
+        function sort_unique(arr) {
+  			if (arr.length === 0) return arr;
+  			arr = arr.sort((a, b) => a.num < b.num ? -1 : 1);
+  			var ret = [arr[0]];
+  			for (var i = 1; i < arr.length; i++) { //Start loop at 1: arr[0] can never be a duplicate
+    			if (arr[i-1].num !== arr[i].num) {
+    				
+      				ret.push(arr[i]);
+    			}
+  			}
+  			return ret;
+		}			
 
         function isPrime(n, k) {
             if (n <= 1n) return false;
@@ -112,19 +121,19 @@
 
             let d = n - 1n;
             let s = 0;
-            while (d % 2n === 0n) {
+            while (d % 2n === 0) {
                 d /= 2n;
                 s++;
             }
 
-            for(let i = 0; i < k; i++) {
+            for (let i = 0; i < k; i++) {
                 const a = 2n + BigInt(Math.floor(Math.random() * Number(n - 2n)));
                 let x = powmod(a, d, n);
 
                 if (x === 1n || x === n - 1n) continue;
 
                 let j;
-                for(j = 0; j < s - 1; j++) {
+                for (j = 0; j < s - 1; j++) {
                     x = powmod(x, 2n, n);
                     if (x === n - 1n) break;
                 }
@@ -140,9 +149,9 @@
             const minLen = parseInt(document.getElementById('minElements').value);
             const maxLen = parseInt(document.getElementById('maxElements').value);
             
-            // 入力バリデーション
+            // Input validation
             if(minLen > maxLen) {
-                alert("最小値は最大値以下でなければなりません");
+                alert("Min value must be less than or equal to max value.");
                 return;
             }
 
@@ -154,11 +163,11 @@
 
             const primes = [];
 
-            for(let i = 0; i < n; i++) {
+            for (let i = 0; i < n; i++) {
                 let elements;
                 do {
                     elements = generate(text);
-                } while(elements.length < minLen || elements.length > maxLen);
+                } while (elements.length < minLen || elements.length > maxLen);
 
                 const num = concatenateNumbers(elements);
                 if (isPrime(num, 40)) {
@@ -171,11 +180,13 @@
                     sortedPrimes.innerHTML += `Found prime: ${elements.join(',')} → ${num}<br>`;
                 }
             }
+            
 
             if (primes.length > 0) {
-                primes.sort((a, b) => a.num < b.num ? -1 : 1);
+                //primes.sort((a, b) => a.num < b.num ? -1 : 1);
                 output.innerHTML = "<h3>Sorted Primes:↑</h3>";
-                primes.forEach(p => {
+				console.log(sort_unique(primes));
+                sort_unique(primes).forEach(p => {
                     output.innerHTML = `${p.elements.join(',')} → ${p.num}<br>` + output.innerHTML;
                 });
             } else {
