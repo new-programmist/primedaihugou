@@ -18,7 +18,7 @@
         </div>
         <div class="input-group">
             <label>Cards: </label>
-            <input type="text" id="cards" value="1A23457JQKO" maxlength="20">
+            <input type="text" id="cards" value="1A23457JQKO" maxlength="80">
         </div>
         <div class="input-group">
             <label>Min Elements: </label>
@@ -37,12 +37,12 @@
     <script>
         function scaledrand(x) {
             if (x === 0) return 0;
-            const a = Math.floor(Math.random() * (x + 1));
+            const a = Math.floor(Math.random() * (x + 0));
             const b = Math.floor(Math.random() * x);
             return a > b ? a : b;
         }
 
-        function generate(text) {
+        function generate(text,min,max) {
             const counts = new Array(14).fill(0);
             
             for(const c of text) {
@@ -54,7 +54,11 @@
                     case '3': value = 3; break;
                     case '4': value = 4; break;
                     case '5': value = 5; break;
+		    case '6': value = 6; break;
                     case '7': value = 7; break;
+                    case '8': value = 8; break;
+                    case '9': value = 9; break;
+                    case 'T': value = 10; break;
                     case 'J': value = 11; break;
                     case 'Q': value = 12; break;
                     case 'K': value = 13; break;
@@ -68,7 +72,7 @@
             for(let i = 0; i < 14; i++) {
                 const count = counts[i];
                 if (count === 0) continue;
-                const s = scaledrand(count);
+                const s = count;
                 elements.push(...new Array(s).fill(i));
             }
 
@@ -78,7 +82,7 @@
                 [elements[i], elements[j]] = [elements[j], elements[i]];
             }
 
-            return elements;
+            return elements.slice(0,scaledrand(max-min+1)+min);
         }
 
         function concatenateNumbers(elements) {
@@ -165,9 +169,9 @@
 
             for (let i = 0; i < n; i++) {
                 let elements;
-                do {
-                    elements = generate(text);
-                } while (elements.length < minLen || elements.length > maxLen);
+
+                elements = generate(text,minLen,maxLen);
+
 
                 const num = concatenateNumbers(elements);
                 if (isPrime(num, 40)) {
