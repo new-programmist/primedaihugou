@@ -12,9 +12,9 @@
   </style>
 </head>
 <body>
-  <h1>素数カード生成器 🎴</h1>
-  <label>カード数字（半角スペース区切り）:</label>
-  <input type="text" id="cards" value="12 12 11 11 10 10 1 1" />
+  <h1>素数カード生成器 🎴（0721(0始まり)対応）</h1>
+  <label>カード数字（スペース区切り、例: 01 02 11 03）:</label>
+  <input type="text" id="cards" value="12 12 11 11 10 10 01 01" />
 
   <label>繰り返し試行回数:</label>
   <input type="number" id="iterations" value="1000" />
@@ -67,7 +67,7 @@
     }
 
     function generate() {
-      const cards = document.getElementById("cards").value.trim().split(/\s+/).map(Number);
+      const cards = document.getElementById("cards").value.trim().split(/\s+/); // ← 数字文字列として保持
       const iterations = parseInt(document.getElementById("iterations").value);
       const [min, max] = document.getElementById("lengthRange").value.split("-").map(Number);
       const found = new Set();
@@ -78,7 +78,7 @@
         const shuffled = cards.slice().sort(() => Math.random() - 0.5);
         const len = Math.floor(Math.random() * (max - min + 1)) + min;
         const chosen = shuffled.slice(0, len);
-        const numStr = chosen.join('');
+        const numStr = chosen.join(""); // 文字列として連結（0を保持しない）
         const num = BigInt(numStr);
         if (millerRabin(num)) {
           found.add(`${chosen.join(" ")} → ${num}`);
@@ -88,7 +88,7 @@
       const sorted = Array.from(found).sort((a, b) => {
         const na = BigInt(a.split("→")[1].trim());
         const nb = BigInt(b.split("→")[1].trim());
-        return na < nb ? 1 : -1;
+        return na < nb ? -1 : 1;
       });
 
       for (const line of sorted) {
